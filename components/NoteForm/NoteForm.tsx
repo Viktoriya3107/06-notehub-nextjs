@@ -6,17 +6,19 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createNote } from '@/lib/api';
 import type { NoteTag } from '@/types/note';
 
+interface NoteFormProps {
+  onClose: () => void;
+}
+
 const schema = Yup.object({
   title: Yup.string().min(3).max(50).required(),
   content: Yup.string().max(500),
-  tag: Yup.string().required(),
+  tag: Yup.mixed<NoteTag>()
+    .oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'])
+    .required(),
 });
 
-export default function NoteForm({
-  onClose,
-}: {
-  onClose: () => void;
-}) {
+export default function NoteForm({ onClose }: NoteFormProps) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -38,11 +40,10 @@ export default function NoteForm({
       onSubmit={(values) => mutation.mutate(values)}
     >
       <Form>
-        <Field name="title" placeholder="Title" />
+        <Field name="title" />
         <ErrorMessage name="title" />
 
-        <Field as="textarea" name="content" />
-        <ErrorMessage name="content" />
+        <Field name="content" as="textarea" />
 
         <Field as="select" name="tag">
           <option value="Todo">Todo</option>
@@ -52,15 +53,11 @@ export default function NoteForm({
           <option value="Shopping">Shopping</option>
         </Field>
 
-        <ErrorMessage name="tag" />
-
         <button type="button" onClick={onClose}>
           Cancel
         </button>
 
-        <button type="submit">
-          Create note
-        </button>
+        <button type="submit">Create</button>
       </Form>
     </Formik>
   );

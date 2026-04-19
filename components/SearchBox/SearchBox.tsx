@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
-export default function SearchBox({
-  onSearch,
-}: {
+interface SearchBoxProps {
   onSearch: (value: string) => void;
-}) {
-  const [value, setValue] = useState('');
+}
+
+export default function SearchBox({ onSearch }: SearchBoxProps) {
+  const [value, setValue] = useState<string>('');
 
   const debounced = useDebouncedCallback((val: string) => {
     onSearch(val);
@@ -16,13 +16,12 @@ export default function SearchBox({
 
   return (
     <input
-      type="text"
-      placeholder="Search notes"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
         debounced(e.target.value);
       }}
+      placeholder="Search"
     />
   );
 }

@@ -1,40 +1,42 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { fetchNotes } from '@/lib/api';
-import SearchBox from '@/components/SearchBox/SearchBox';
-import Pagination from '@/components/Pagination/Pagination';
+import { useParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { fetchNoteById } from '@/lib/api';
+import css from './NoteDetails.module.css';
 
-export default function NotesClient() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
+export default function NoteDetailsClient() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['notes', page, search],
-    queryFn: () => fetchNotes(page, search),
-    placeholderData: keepPreviousData,
+  const {
+    data: note,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['note', id],
+    queryFn: () => fetchNoteById(id),
+    enabled: !!id,
+    refetchOnMount: false,
   });
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error</p>;
+  if (isLoading) return <p>Loading, please wait...</p>;
+
+  if (error || !note) {
+    return <p>Something went wrong.</p>;
+  }
 
   return (
-    <div>
-     
-      <SearchBox onSearch={setSearch} />
+    <div className={css.container}>
+      <div className={css.item}>
+        <div className={css.header}>
+          <h2>{note.title}</h2>
+        </div>
 
-      {/* список */}
-      {(data?.notes ?? []).map((note) => (
-        <div key={note.id}>{note.title}</div>
-      ))}
-
-      
-      <Pagination
-        pageCount={data?.totalPages ?? 1}
-        currentPage={page}
-        onPageChange={({ selected }) => setPage(selected + 1)}
-      />
+        <p className={css.tag}>{note.tag}</p>
+        <p className={css.content}>{note.content}</p>
+        <p className={css.date}>{note.createdAt}</p>
+      </div>
     </div>
   );
 }
