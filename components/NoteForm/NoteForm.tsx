@@ -40,10 +40,11 @@ export default function NoteForm({ onClose }: NoteFormProps) {
       onSubmit={(values) => mutation.mutate(values)}
     >
       <Form>
-        <Field name="title" />
+        <Field name="title" placeholder="Title" />
         <ErrorMessage name="title" />
 
         <Field name="content" as="textarea" />
+        <ErrorMessage name="content" />
 
         <Field as="select" name="tag">
           <option value="Todo">Todo</option>
@@ -52,12 +53,15 @@ export default function NoteForm({ onClose }: NoteFormProps) {
           <option value="Meeting">Meeting</option>
           <option value="Shopping">Shopping</option>
         </Field>
+        <ErrorMessage name="tag" />
 
         <button type="button" onClick={onClose}>
           Cancel
         </button>
 
-        <button type="submit">Create</button>
+        <button type="submit">
+          Create note
+        </button>
       </Form>
     </Formik>
   );
