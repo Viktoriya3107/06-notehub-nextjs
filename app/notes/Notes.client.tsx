@@ -30,6 +30,9 @@ export default function NotesClient() {
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error</p>;
 
+  const notes = data?.notes ?? [];
+  const totalPages = data?.totalPages ?? 1;
+
   return (
     <div>
       <button onClick={() => setIsModalOpen(true)}>
@@ -38,13 +41,17 @@ export default function NotesClient() {
 
       <SearchBox onSearch={debouncedSearch} />
 
-      <NoteList notes={data?.notes ?? []} />
+     
+      {notes.length > 0 && <NoteList notes={notes} />}
 
-      <Pagination
-        pageCount={data?.totalPages ?? 1}
-        currentPage={page}
-        onPageChange={({ selected }) => setPage(selected + 1)}
-      />
+      
+      {totalPages > 1 && (
+        <Pagination
+          pageCount={totalPages}
+          currentPage={page}
+          onPageChange={({ selected }) => setPage(selected + 1)}
+        />
+      )}
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
