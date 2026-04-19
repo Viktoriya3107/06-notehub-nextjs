@@ -3,16 +3,12 @@
 import { useState } from 'react';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { fetchNotes } from '@/lib/api';
-import NoteList from '@/components/NoteList/NoteList';
 import SearchBox from '@/components/SearchBox/SearchBox';
 import Pagination from '@/components/Pagination/Pagination';
-import Modal from '@/components/Modal/Modal';
-import NoteForm from '@/components/NoteForm/NoteForm';
 
 export default function NotesClient() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['notes', page, search],
@@ -20,28 +16,25 @@ export default function NotesClient() {
     placeholderData: keepPreviousData,
   });
 
-  if (isLoading) return <p>Loading, please wait...</p>;
-  if (isError || !data) return <p>Error</p>;
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error</p>;
 
   return (
     <div>
+     
       <SearchBox onSearch={setSearch} />
 
-      <button onClick={() => setIsOpen(true)}>Create note +</button>
+      {/* список */}
+      {(data?.notes ?? []).map((note) => (
+        <div key={note.id}>{note.title}</div>
+      ))}
 
-      <NoteList notes={data.notes} />
-
+      
       <Pagination
-        pageCount={data.totalPages}
+        pageCount={data?.totalPages ?? 1}
         currentPage={page}
         onPageChange={({ selected }) => setPage(selected + 1)}
       />
-
-      {isOpen && (
-        <Modal onClose={() => setIsOpen(false)}>
-          <NoteForm onClose={() => setIsOpen(false)} />
-        </Modal>
-      )}
     </div>
   );
 }

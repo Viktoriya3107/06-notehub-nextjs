@@ -1,13 +1,10 @@
 import axios from 'axios';
-import type { Note } from '@/types/note';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const TOKEN = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
+import type { Note, NoteTag } from '@/types/note';
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
-    Authorization: `Bearer ${TOKEN}`,
+    Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
   },
 });
 
@@ -16,23 +13,40 @@ export interface NotesResponse {
   totalPages: number;
 }
 
-export const fetchNotes = async (page: number, search: string) => {
-  const { data } = await api.get<NotesResponse>('', {
+interface CreateNotePayload {
+  title: string;
+  content: string;
+  tag: NoteTag;
+}
+
+
+export const fetchNotes = async (
+  page: number,
+  search: string
+): Promise<NotesResponse> => {
+  const { data } = await api.get('/notes', {
     params: { page, search },
   });
+
+  return {
+    notes: Array.isArray(data?.notes) ? data.notes : [],
+    totalPages: typeof data?.totalPages === 'number' ? data.totalPages : 1,
+  };
+};
+
+
+export const fetchNoteById = async (id: string): Promise<Note> => {
+  const { data } = await api.get(`/notes/${id}`);
   return data;
 };
 
-export const fetchNoteById = async (id: string) => {
-  const { data } = await api.get<Note>(`/${id}`);
+
+export const createNote = async (
+  payload: CreateNotePayload
+): Promise<Note> => {
+  const { data } = await api.post('/notes', payload);
   return data;
 };
-
-export const createNote = async (note: Partial<Note>) => {
-  const { data } = await api.post('', note);
-  return data;
-};
-
-export const deleteNote = async (id: string) => {
-  await api.delete(`/${id}`);
+export const deleteNote = async (id: string): Promise<void> => {
+  await api.delete(`/notes/${id}`);
 };
