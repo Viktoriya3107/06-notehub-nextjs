@@ -1,42 +1,41 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { fetchNoteById } from '@/lib/api';
-import css from './NoteDetails.module.css';
+import { useState } from 'react';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { fetchNotes } from '@/lib/api';
+import SearchBox from '@/components/SearchBox/SearchBox';
+import Pagination from '@/components/Pagination/Pagination';
+import NoteList from '@/components/NoteList/NoteList';
 
-export default function NoteDetailsClient() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+export default function NotesClient() {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
 
-  const {
-    data: note,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['note', id],
-    queryFn: () => fetchNoteById(id),
-    enabled: !!id,
-    refetchOnMount: false,
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['notes', page, search],
+    queryFn: () => fetchNotes(page, search),
+    placeholderData: keepPreviousData,
   });
 
-  if (isLoading) return <p>Loading, please wait...</p>;
-
-  if (error || !note) {
-    return <p>Something went wrong.</p>;
-  }
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error</p>;
 
   return (
-    <div className={css.container}>
-      <div className={css.item}>
-        <div className={css.header}>
-          <h2>{note.title}</h2>
-        </div>
+    <div>
+      <SearchBox
+        onSearch={(value) => {
+          setSearch(value);
+          setPage(1);
+        }}
+      />
 
-        <p className={css.tag}>{note.tag}</p>
-        <p className={css.content}>{note.content}</p>
-        <p className={css.date}>{note.createdAt}</p>
-      </div>
+      <NoteList notes={data?.notes ?? []} />
+
+      <Pagination
+        pageCount={data?.totalPages ?? 1}
+        currentPage={page}
+        onPageChange={({ selected }) => setPage(selected + 1)}
+      />
     </div>
   );
 }
